@@ -1,0 +1,29 @@
+{
+  "skill_id": "morning-brief-send",
+  "action_verb": "brief",
+  "target_object": "morning",
+  "description": "每日早晨8-12点，跃龙兄第一条消息时自动发送早间简报，并将其三件事持久化到今日任务文件。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

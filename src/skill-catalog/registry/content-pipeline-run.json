@@ -1,0 +1,29 @@
+{
+  "skill_id": "content-pipeline-run",
+  "action_verb": "pipeline",
+  "target_object": "content",
+  "description": "\u5185\u5bb9\u91c7\u96c6\u2192\u5206\u53d1\u2192\u5199\u4f5c\u6d41\u6c34\u7ebf\uff08\u4fe1\u606f\u6c60\u6a21\u5f0f\uff09\u3002\u91c7\u96c6\u5168\u91cf\u4e0b\u53d1\u5bfc\u81f4\u7b14\u6746\u5b50\u4efb\u52a1\u8fc7\u8f7d\uff0c\u4ee5\u300c\u4fe1\u606f\u6c60\u300d\u4e3a\u5355\u4e00\u5165\u53e3\u7684\u5206\u53d1\u67b6\u6784\u3002",
+  "constraints": {
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "\u6267\u884c\u539f\u56e0/\u89e6\u53d1\u4e0a\u4e0b\u6587"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

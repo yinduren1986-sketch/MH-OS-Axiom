@@ -1,0 +1,29 @@
+{
+  "skill_id": "wechat-publish",
+  "action_verb": "publish",
+  "target_object": "wechat",
+  "description": "使用 wenyan-cli 将 Markdown 文章一键发布到蓝豆咖啡馆公众号草稿箱。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

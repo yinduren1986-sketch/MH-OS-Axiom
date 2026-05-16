@@ -1,0 +1,29 @@
+{
+  "skill_id": "rss-harvest",
+  "action_verb": "harvest",
+  "target_object": "rss",
+  "description": "每日凌晨自动抓取多源RSS全文，定时任务专用。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

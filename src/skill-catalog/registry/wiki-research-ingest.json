@@ -1,0 +1,29 @@
+{
+  "skill_id": "wiki-research-ingest",
+  "action_verb": "research",
+  "target_object": "wiki",
+  "description": "参谋调研 → wiki ingest 完整工作流：从选题确认到 wiki 页面建立的标准化流程",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

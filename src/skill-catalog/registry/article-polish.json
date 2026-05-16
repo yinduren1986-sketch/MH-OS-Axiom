@@ -1,0 +1,29 @@
+{
+  "skill_id": "article-polish",
+  "action_verb": "polish",
+  "target_object": "article",
+  "description": "Polish, modify, adjust structure, or supplement image placeholders for existing articles. Supports five modes: humanizer enhancement, structure adjustment, tone conversion, image placeholder addition, and comprehensive polishing. Use when: Revising drafts, secondary polishing, adjusting style, adding images, optimizing structure.",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

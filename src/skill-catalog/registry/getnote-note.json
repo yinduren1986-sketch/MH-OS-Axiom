@@ -1,0 +1,29 @@
+{
+  "skill_id": "getnote-note",
+  "action_verb": "note",
+  "target_object": "getnote",
+  "description": "使用 Get笔记 API 读写笔记、知识库、订阅博主内容。调用前必读。所有Agent（参谋/进化官等）调用Get笔记时，直接读本文件。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

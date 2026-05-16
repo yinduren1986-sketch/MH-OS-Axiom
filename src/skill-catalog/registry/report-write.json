@@ -1,0 +1,29 @@
+{
+  "skill_id": "report-write",
+  "action_verb": "write",
+  "target_object": "report",
+  "description": "\u53c2\u8c0b\u62a5\u544a\u683c\u5f0f\u89c4\u8303\u3002\u6765\u6e90\uff1aLLM Council\u6846\u67b6\u5185\u5316\u3002",
+  "constraints": {
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "\u6267\u884c\u539f\u56e0/\u89e6\u53d1\u4e0a\u4e0b\u6587"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

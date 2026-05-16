@@ -1,0 +1,29 @@
+{
+  "skill_id": "style-extract",
+  "action_verb": "extract",
+  "target_object": "style",
+  "description": "Analyze sample text to extract writing style fingerprint (syntax, vocabulary, rhetorical features) and save as JSON for subsequent writing use. Supports three input sources: file, text, and URL.",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

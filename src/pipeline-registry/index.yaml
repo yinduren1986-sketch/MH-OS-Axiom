@@ -1,0 +1,58 @@
+# Pipeline Registry — Index
+# Generated: 2026-05-15
+# Branch: feat/runbook
+
+pipelines:
+  - pipeline_id: echoreply-dispatch
+    description: 扫描待派发任务并派发给对应 Agent
+    trigger: scheduled
+    trigger_config:
+      cron: "*/10 * * * *"  # 每10分钟扫描一次
+    condition: "pending_count > 0"
+    steps:
+      - id: scan
+        skill: echoreply-dispatch
+        depends_on: []
+        output_as: dispatch_result
+      - id: spawn
+        skill: task-dispatch
+        depends_on: [scan]
+        condition: "{{steps.scan.output.pending_count}} > 0"
+        input_mapping:
+          pending_tasks: "{{steps.scan.output.pending_tasks}}"
+        output_as: spawn_result
+    error_policy:
+      on_step_fail: pause_and_notify
+      notify_channel: qq
+      notify_target: qqbot:c2c:B428BAD0ABB9E36ACFD7CCC8F077DEEE
+
+  - pipeline_id: echoreply-notify
+    description: 检测任务完成/超时并发送 QQ 通知
+    trigger: scheduled
+    trigger_config:
+      cron: "*/10 * * * *"
+    condition: "true"  # 始终执行，只发有异常时
+    steps:
+      - id: check_complete
+        skill: echoreply-dispatch
+        depends_on: []
+        input_mapping:
+          mode: check_complete
+        output_as: complete_result
+      - id: check_timeout
+        skill: echoreply-dispatch
+        depends_on: []
+        input_mapping:
+          mode: check_timeout
+        output_as: timeout_result
+      - id: notify
+        skill: message-send
+        depends_on: [check_complete, check_timeout]
+        condition: "{{steps.check_complete.output.new_complete_count}} > 0 OR {{steps.check_timeout.output.timeout_count}} > 0"
+        input_mapping:
+          channel: qqbot
+          target: qqbot:c2c:B428BAD0ABB9E36ACFD7CCC8F077DEEE
+          message: "{{steps.check_complete.output.summary}} {{steps.check_timeout.output.summary}}"
+        output_as: notify_result
+    error_policy:
+      on_step_fail: skip_continue

@@ -1,0 +1,1 @@
+{"skill_id":"heartbeat-skip","action_verb":"check","target_object":"system","description":"条件化心跳检查","constraints":{"risk_level":"low","requires_confirmation":false,"idempotent":true},"input_schema":{},"output_schema":{"type":"boolean","storage":"memory","ref_as":"should_run_heartbeat"},"exec_log":{"enabled":true,"fields":["check_result","pending_tasks","timestamp"]}}

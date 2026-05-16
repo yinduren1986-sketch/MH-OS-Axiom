@@ -1,0 +1,29 @@
+{
+  "skill_id": "article-write",
+  "action_verb": "write",
+  "target_object": "article",
+  "description": "标准长文写作流程（1500-2000字），含叙事节奏四维控制节点（强制）、注意力捕获三原则检查清单。适用：日常独立撰文、需要图像占位符和内置润色的文章。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

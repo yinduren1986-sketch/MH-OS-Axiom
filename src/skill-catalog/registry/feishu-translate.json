@@ -1,0 +1,29 @@
+{
+  "skill_id": "feishu-translate",
+  "action_verb": "translate",
+  "target_object": "feishu",
+  "description": "将英文文章翻译为中英文双语格式，存入飞书文档。触发条件：跃龙兄说\"存飞书\"或Amber判断某篇值得存档。",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

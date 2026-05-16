@@ -1,0 +1,29 @@
+{
+  "skill_id": "message-chunk",
+  "action_verb": "chunk",
+  "target_object": "message",
+  "description": "",
+  "constraints": {
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "skill_id": "深夜采集管线-run",
+  "action_verb": "run",
+  "target_object": "深夜采集管线",
+  "description": "深夜02:00自动执行：RSS采集 → 合并信息池 → 新闻推送 → 综合摘要",
+  "constraints": {
+    "risk_level": "high",
+    "requires_confirmation": true,
+    "idempotent": false
+  },
+  "input_schema": {
+    "reason": {
+      "type": "string",
+      "required": true,
+      "source": "user",
+      "description": "执行原因/触发上下文"
+    }
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": [
+      "skill_id",
+      "timestamp"
+    ]
+  }
+}
