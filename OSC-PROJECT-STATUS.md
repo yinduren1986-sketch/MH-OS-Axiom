@@ -42,7 +42,7 @@
 ### ⚠️ 问题1：GitHub 认证缺失，无法自动 push
 
 **现象**: `git push origin feat/runbook` 失败，无认证
-**影响**: 分支合并后需要老崔手动 push，或者配 SSH key
+**影响**: 分支合并后需要{{user}}手动 push，或者配 SSH key
 **建议**: 配置 `git config --global credential.helper store` 或使用 SSH
 
 ---
@@ -58,7 +58,7 @@
 
 ### ⚠️ 问题3：后台编辑失败（误报）
 
-**现象**: `evaluator.ts` 编辑失败提示（老崔后台）
+**现象**: `evaluator.ts` 编辑失败提示（{{user}}后台）
 **实际**: 文件在 git 分支上正常（17文件已合并），疑似后台环境分支不匹配
 **根因**: 后台编辑器可能在 `main` 分支打开，而文件只在 `feat/semantic-core` 存在
 **建议**: 后台编辑前确认分支是 `feat/runbook` 或 `feat/semantic-core`
