@@ -14,6 +14,9 @@ pipelines:
         skill: echoreply-dispatch
         depends_on: []
         output_as: dispatch_result
+        input_mapping:
+          pending_count: "{{env.pending_count}}"
+          pending_tasks: "{{env.pending_tasks}}"
       - id: spawn
         skill: task-dispatch
         depends_on: [scan]
@@ -24,7 +27,7 @@ pipelines:
     error_policy:
       on_step_fail: pause_and_notify
       notify_channel: qq
-      notify_target: qqbot:c2c:B428BAD0ABB9E36ACFD7CCC8F077DEEE
+      notify_target: "{{env.notify_target}}"
 
   - pipeline_id: echoreply-notify
     description: 检测任务完成/超时并发送 QQ 通知
@@ -51,7 +54,7 @@ pipelines:
         condition: "{{steps.check_complete.output.new_complete_count}} > 0 OR {{steps.check_timeout.output.timeout_count}} > 0"
         input_mapping:
           channel: qqbot
-          target: qqbot:c2c:B428BAD0ABB9E36ACFD7CCC8F077DEEE
+          target: "{{env.notify_target}}"
           message: "{{steps.check_complete.output.summary}} {{steps.check_timeout.output.summary}}"
         output_as: notify_result
     error_policy:

@@ -2,7 +2,7 @@
   "skill_id": "feishu-translate",
   "action_verb": "translate",
   "target_object": "feishu",
-  "description": "将英文文章翻译为中英文双语格式，存入飞书文档。触发条件：跃龙兄说\"存飞书\"或Amber判断某篇值得存档。",
+  "description": "将英文文章翻译为中英文双语格式，存入飞书文档。触发条件：{{user_name}}说\"存飞书\"或Amber判断某篇值得存档。",
   "constraints": {
     "risk_level": "high",
     "requires_confirmation": true,
