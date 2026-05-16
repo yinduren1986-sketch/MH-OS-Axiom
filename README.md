@@ -2,103 +2,107 @@
 
 **建立在 OpenClaw 之上的 AI Agent 操作系统扩展**
 
-> 让 AI 真正理解"上下文"和"时间"，而非仅处理即时消息。
+---
+
+## Axiom — 不言自明的真理
+
+古希腊数学家欧几里得用五条公理推演出整座几何大厦。
+
+公理不需要证明，因为它们本身就是证明的起点。
+
+**MH-OS-Axiom 的核心假设只有一条：**
+
+> 一个真正有用的 AI，应该记得你说的话，理解时间的力量，在该出现的时候出现，在该安静的时候安静。
+
+基于这一条公理，推导出整套系统架构。
 
 ---
 
-## 核心定位
+## 旧的问题
 
-MH-OS-Axiom 是老崔的个人 AI 助手二次开发项目，运行在 OpenClaw 平台上，为 AI Agent 提供：
+大多数 AI 助手都是：**你问，它答，答完忘光。**
 
-- **语义记忆系统**（Semantic Memory）
-- **时间推理引擎**（Temporal Reasoning）
-- **条件化心跳调度**（Conditional Heartbeat）
-- **可执行手册体系**（Executable Runbook）
+下一次对话，你们之间没有任何记忆桥梁。你说「上次那个继续弄」，它问「哪个上次」。
 
----
-
-## 架构一览
-
-### 语义核心系统（Semantic Core）
-
-| 模块                         | 功能                          | 状态 |
-| ---------------------------- | ----------------------------- | ---- |
-| `factsStore`                 | 结构化事实存储与召回          | ✅   |
-| `compaction-yaml-logger`     | 压缩后自动写 facts 到 memory  | ✅   |
-| `facts-aware-context-engine` | 查询 facts 注入 System Prompt | ✅   |
-
-### 时间推理系统（Temporal Reasoning）
-
-| 模块                       | 功能                                | 状态 |
-| -------------------------- | ----------------------------------- | ---- |
-| `timeParser`               | 自然语言时间解析（38/38 test pass） | ✅   |
-| `weekday offset algorithm` | 跨周时间计算                        | ✅   |
-
-### 条件化心跳（Conditional Heartbeat）
-
-| 模块                            | 功能                               | 状态 |
-| ------------------------------- | ---------------------------------- | ---- |
-| `evaluator`                     | AND/OR/NOT 条件解析                | ✅   |
-| `policyEngine`                  | Safety Gate + DEFAULT_POLICIES     | ✅   |
-| `semanticRouter`                | continue/pause/query/idle 策略路由 | ✅   |
-| `conditional-heartbeat` handler | 静默期跳过 + 语义意图检测          | ✅   |
-
-### 可执行手册（Executable Runbook）
-
-| 模块                | 功能                | 状态 |
-| ------------------- | ------------------- | ---- |
-| `Skill Catalog`     | 17 张 Skill 卡牌    | ✅   |
-| `Pipeline Registry` | YAML 声明式流水线   | ✅   |
-| `pipeline-executor` | DAG 执行 + 补偿机制 | ✅   |
-| `Execution Log`     | 全链路 exec_id 追踪 | ✅   |
+时间在这里是断裂的——每次对话都是孤岛，上下文无法跨次延续。
 
 ---
 
-## 系统特性
+## 新的解法：三层时间记忆
 
-**三层时间记忆**
+**L1 — 当天层**
+对话进行中。你说完一个结论，系统立刻记住，写入当天记忆文件。
 
-- L1 当天层：对话内实时写入
-- L2 月度层：每日 23:00 自动备份
-- L3 永久层：决策原则/平台密钥/踩坑记录
+下一次对话同一个话题，不用重复。它知道你们上次说到哪了。
 
-**心跳静默期**：凌晨 0:00 - 06:00 默认跳过，非紧急不打扰
+**L2 — 月度层**
+隔了一周、两周、一个月，你回来了。
 
-**语义路由**：消息先过语义分析，再决定是 continue / pause / query / idle
+系统翻出上个月备份的记忆，知道你们之前做过什么决策、从哪一步继续。
+
+**L3 — 永久层**
+有些事不会被遗忘——你叫什么、你的原则是什么、踩过什么坑。
+
+这些是长期记忆，始终在线。系统懂你，不会重复犯错。
+
+---
+
+## 条件化心跳：不无谓唤醒
+
+普通的 AI 服务：每30分钟心跳一次，不管有事没事。
+
+MH-OS-Axiom 的心跳是有条件的：
+
+**有事 → 唤醒 → 执行 → 通知你**
+**没事 → 安静 → 等下次信号**
+
+凌晨 2:00 到早上 6:00，默认不打扰。
+
+不是功能削减，是基本的时间感知。
+
+---
+
+## Skill Catalog：定义动作，不只是聊天
+
+传统的 AI 交互：发一条消息，等回复，靠模型猜你要什么。
+
+MH-OS-Axiom 把动作写进卡牌，17 张标准化技能，每张卡有：
+
+- **action_verb**（做什么）
+- **输入约束**（需要什么参数）
+- **输出格式**（返回什么结构）
+
+然后由 Pipeline Registry 编排执行顺序，DAG 依赖 + 补偿机制，全程可回溯。
+
+说「做」就做，不是聊天。
+
+---
+
+## 设计哲学
+
+> 不做更多功能的 AI，做更懂你的 AI。
+>
+> 记得住你说的，才能真的帮你。
+> 理解时间的上下文，才能在该出现的时候出现。
+> 把动作写成可执行的，才能不只是「给建议」。
 
 ---
 
 ## 技术栈
 
-- **平台**：OpenClaw（Node.js）
-- **语言**：TypeScript
-- **测试**：Jest（38/38 timeParser tests）
-- **调度**：cron + conditional-heartbeat hook
+- **平台**：OpenClaw（Node.js / TypeScript）
+- **记忆层**：L1/L2/L3 三层召回
+- **调度**：Pipeline Registry（YAML DAG）+ executeStep 真实工具调用
+- **心跳**：Conditional Heartbeat + Safety Gate
+- **测试**：timeParser 38/38 全绿
 
 ---
 
-## 运行要求
+## 项目状态
 
-- OpenClaw 已安装（workspace = `/root/.openclaw/workspace/openclaw-src`）
-- SSH 密钥配置（用于 GitHub Deploy Key）
-- Node.js ≥ 18
-
----
-
-## 开发分支说明
-
-| 分支            | 用途                           |
-| --------------- | ------------------------------ |
-| `clean-runbook` | 主力开发分支（GitHub 默认）    |
-| `feat/runbook`  | 本地开发历史（完整 commit 链） |
-
----
-
-## 背景
-
-老崔的 AI 助手（Amber）部署在腾讯轻量服务器（东京），IP：（已保护）。
-
-Amber 的核心信条：**策略先于创意**，给老崔提供可落地、有逻辑的营销和决策支持。
+- 代码：MIT License，公开可取
+- 文档：持续更新，欢迎贡献
+- 平台：运行在 OpenClaw 上（需要 Node.js ≥ 18）
 
 ---
 
