@@ -1,5 +1,5 @@
 {
-  "skill_id": "feishu-doc-read",
+  "skill_id": "feishu-doc",
   "action_verb": "read",
   "target_object": "feishu-doc",
   "description": "读取飞书文档内容",
@@ -23,10 +23,6 @@
   },
   "exec_log": {
     "enabled": true,
-    "fields": [
-      "doc_token",
-      "action",
-      "timestamp"
-    ]
+    "fields": ["doc_token", "action", "timestamp"]
   }
 }

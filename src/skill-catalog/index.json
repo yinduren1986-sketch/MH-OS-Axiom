@@ -3,153 +3,22 @@
   "generated_from": "IDENTITY.md + TOOLS.md",
   "last_updated": "2026-05-15",
   "skills": [
-    {
-      "skill_id": "feishu-doc-read",
-      "file": "feishu-doc-read.json"
-    },
-    {
-      "skill_id": "feishu-doc-write",
-      "file": "feishu-doc-write.json"
-    },
-    {
-      "skill_id": "feishu-wiki",
-      "file": "feishu-wiki.json"
-    },
-    {
-      "skill_id": "feishu-drive",
-      "file": "feishu-drive.json"
-    },
-    {
-      "skill_id": "feishu-bitable",
-      "file": "feishu-bitable.json"
-    },
-    {
-      "skill_id": "tencent-doc",
-      "file": "tencent-doc.json"
-    },
-    {
-      "skill_id": "getnote",
-      "file": "getnote.json"
-    },
-    {
-      "skill_id": "qwen-image",
-      "file": "qwen-image.json"
-    },
-    {
-      "skill_id": "image-analyze",
-      "file": "image-analyze.json"
-    },
-    {
-      "skill_id": "message-send",
-      "file": "message-send.json"
-    },
-    {
-      "skill_id": "memory-search",
-      "file": "memory-search.json"
-    },
-    {
-      "skill_id": "memory-write",
-      "file": "memory-write.json"
-    },
-    {
-      "skill_id": "tts",
-      "file": "tts.json"
-    },
-    {
-      "skill_id": "github",
-      "file": "github.json"
-    },
-    {
-      "skill_id": "opencli",
-      "file": "opencli.json"
-    },
-    {
-      "skill_id": "heartbeat-skip",
-      "file": "heartbeat-skip.json"
-    },
-    {
-      "skill_id": "echoreply-dispatch",
-      "file": "echoreply-dispatch.json"
-    },
-    {
-      "skill_id": "rss-harvest",
-      "file": "rss-harvest.json"
-    },
-    {
-      "skill_id": "feishu-translate",
-      "file": "feishu-translate.json"
-    },
-    {
-      "skill_id": "morning-brief-send",
-      "file": "morning-brief-send.json"
-    },
-    {
-      "skill_id": "wechat-publish",
-      "file": "wechat-publish.json"
-    },
-    {
-      "skill_id": "tencent-doc-write",
-      "file": "tencent-doc-write.json"
-    },
-    {
-      "skill_id": "getnote-note",
-      "file": "getnote-note.json"
-    },
-    {
-      "skill_id": "article-write",
-      "file": "article-write.json"
-    },
-    {
-      "skill_id": "article-polish",
-      "file": "article-polish.json"
-    },
-    {
-      "skill_id": "style-extract",
-      "file": "style-extract.json"
-    },
-    {
-      "skill_id": "image-generate",
-      "file": "image-generate.json"
-    },
-    {
-      "skill_id": "深夜采集管线-run",
-      "file": "深夜采集管线-run.json"
-    },
-    {
-      "skill_id": "social-trend-sync",
-      "file": "social-trend-sync.json"
-    },
-    {
-      "skill_id": "wiki-research-ingest",
-      "file": "wiki-research-ingest.json"
-    },
-    {
-      "skill_id": "task-parse",
-      "file": "task-parse.json"
-    },
-    {
-      "skill_id": "message-chunk",
-      "file": "message-chunk.json"
-    },
-    {
-      "skill_id": "content-pipeline-run",
-      "file": "content-pipeline-run.json"
-    },
-    {
-      "skill_id": "lesson-archive",
-      "file": "lesson-archive.json"
-    },
-    {
-      "skill_id": "task-dispatch",
-      "file": "task-dispatch.json"
-    },
-    {
-      "skill_id": "report-write",
-      "file": "report-write.json"
-    },
-    {
-      "skill_id": "collaboration-collaborate",
-      "file": "collaboration-collaborate.json"
-    }
+    { "skill_id": "feishu-doc-read", "file": "feishu-doc-read.json" },
+    { "skill_id": "feishu-doc-write", "file": "feishu-doc-write.json" },
+    { "skill_id": "feishu-wiki", "file": "feishu-wiki.json" },
+    { "skill_id": "feishu-drive", "file": "feishu-drive.json" },
+    { "skill_id": "feishu-bitable", "file": "feishu-bitable.json" },
+    { "skill_id": "tencent-doc", "file": "tencent-doc.json" },
+    { "skill_id": "getnote", "file": "getnote.json" },
+    { "skill_id": "qwen-image", "file": "qwen-image.json" },
+    { "skill_id": "image-analyze", "file": "image-analyze.json" },
+    { "skill_id": "message-send", "file": "message-send.json" },
+    { "skill_id": "memory-search", "file": "memory-search.json" },
+    { "skill_id": "memory-write", "file": "memory-write.json" },
+    { "skill_id": "tts", "file": "tts.json" },
+    { "skill_id": "github", "file": "github.json" },
+    { "skill_id": "opencli", "file": "opencli.json" },
+    { "skill_id": "heartbeat-skip", "file": "heartbeat-skip.json" },
+    { "skill_id": "echoreply-dispatch", "file": "echoreply-dispatch.json" }
   ]
 }
