@@ -1,1 +1,46 @@
-{"skill_id":"echoreply-dispatch","action_verb":"dispatch","target_object":"tasks","description":"EchoReply 任务调度器","constraints":{"risk_level":"medium","requires_confirmation":false,"idempotent":true},"input_schema":{"scan_only":{"type":"boolean","required":false,"source":"context","description":"仅扫描不派发"}},"output_schema":{"type":"object","storage":"memory","ref_as":"dispatch_result"},"exec_log":{"enabled":true,"fields":["pending_count","dispatched_count","timestamp"]}}
+{
+  "skill_id": "echoreply-dispatch",
+  "action_verb": "dispatch",
+  "target_object": "tasks",
+  "description": "EchoReply 任务调度器（支持超时检测）",
+  "constraints": {
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "idempotent": true
+  },
+  "input_schema": {
+    "pending_count": {
+      "type": "number",
+      "required": false,
+      "source": "env",
+      "description": "当前 pending 任务数量"
+    },
+    "pending_tasks": {
+      "type": "string",
+      "required": false,
+      "source": "env",
+      "description": "JSON 序列化的任务列表"
+    },
+    "stale_threshold_hours": {
+      "type": "number",
+      "required": false,
+      "default": 4,
+      "description": "超时阈值（小时），超过则标记 stale"
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "storage": "memory",
+    "ref_as": "dispatch_result"
+  },
+  "exec_log": {
+    "enabled": true,
+    "fields": ["pending_count", "dispatched_count", "stale_count", "timestamp"]
+  },
+  "stale_detection": {
+    "enabled": true,
+    "threshold_hours": 4,
+    "stale_action": "notify_only",
+    "notify_template": "⚠️ 任务 {task_id} 已超时（>{threshold}h未完成），请人工介入"
+  }
+}

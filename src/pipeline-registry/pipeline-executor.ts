@@ -8,9 +8,10 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync, existsSync, mkdirSync, appendFileSync } from "node:fs";
+import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import YAML from "yaml";
 
 // ESM-compatible __dirname
@@ -85,7 +86,11 @@ export interface Pipeline {
 export interface StepContext {
   outputs: Record<string, unknown>;
   inputs: Record<string, unknown>;
+  env?: Record<string, unknown>; // pipeline-level env vars (e.g. pending_count)
 }
+
+// Extends StepContext with env for interpolate use
+export interface PipelineContext extends StepContext {}
 
 /**
  * Interpolate a template string with step outputs or context values.
@@ -136,6 +141,15 @@ export function interpolate(
       const field = parts[1];
       if (ctx.inputs && Object.prototype.hasOwnProperty.call(ctx.inputs, field)) {
         return String((ctx.inputs as Record<string, unknown>)[field]);
+      }
+      return `{{${path}}}`;
+    }
+    // env.* — look up from ctx.env (pipeline env vars)
+    if (parts[0] === "env" && parts.length >= 2) {
+      const field = parts[1];
+      const envObj = (ctx as unknown as { env?: Record<string, unknown> }).env;
+      if (envObj && Object.prototype.hasOwnProperty.call(envObj, field)) {
+        return String(envObj[field]);
       }
       return `{{${path}}}`;
     }
@@ -330,78 +344,150 @@ export async function executeStep(
   switch (skillCard.action_verb) {
     case "dispatch": {
       // Real: call sessions_spawn to dispatch subagent
-      // Standalone: produce representative dispatch output.
-      // Downstream condition checks look for these fields in the step's output_as entry:
-      //   pending_count, pending_tasks, new_complete_count, timeout_count
-      //   status, dispatched_at
-      //
-      // Use spread to merge: preserve existing fields (e.g. from pre-populated
-      // context in tests) and only overwrite with resolved inputs + metadata.
+      // Supports stale detection: if task is too old, notify only (don't spawn)
+      const agentId = (resolvedInputs["agent_id"] as string) || "canmou";
+      const task = resolvedInputs["task"] as string;
+      const runId = (resolvedInputs["run_id"] as string) || `dispatch-${Date.now()}`;
+      const createdAt = resolvedInputs["created_at"] as string | undefined;
+      const staleThresholdHrs = (resolvedInputs["stale_threshold_hours"] as number) || 4;
+
+      // Stale detection: check if task is too old
+      let stale = false;
+      if (createdAt) {
+        const ageMs = Date.now() - new Date(createdAt).getTime();
+        const thresholdMs = staleThresholdHrs * 60 * 60 * 1000;
+        stale = ageMs > thresholdMs;
+      }
+
+      let dispatched = true;
+      let status = "dispatched";
+      let spawnSessionKey: string | undefined;
+
+      if (stale) {
+        // Too old — notify only, don't spawn
+        dispatched = false;
+        status = "stale";
+        console.log(`[dispatch] Task ${runId} is stale (created ${createdAt}), notify only`);
+      } else {
+        // Normal: spawn subagent
+        const result = await sessions_spawn({
+          agentId,
+          task,
+          mode: "run",
+          runtime: "subagent",
+          taskId: runId,
+        });
+        spawnSessionKey =
+          (result as { session_key?: string; runId?: string }).session_key ||
+          (result as { runId?: string }).runId;
+      }
+
       output = {
         ...(ctx.outputs[step.output_as] as Record<string, unknown>),
         skill_id: skillId,
         action_verb: skillCard.action_verb,
         target_object: skillCard.target_object,
         inputs: resolvedInputs,
-        // Only set from resolvedInputs if explicitly provided (not undefined).
-        // This lets tests pre-populate pending_count etc. via ctx.
-        ...(resolvedInputs["pending_count"] !== undefined && {
-          pending_count: resolvedInputs["pending_count"],
-        }),
-        ...(resolvedInputs["pending_tasks"] !== undefined && {
-          pending_tasks: resolvedInputs["pending_tasks"],
-        }),
-        ...(resolvedInputs["new_complete_count"] !== undefined && {
-          new_complete_count: resolvedInputs["new_complete_count"],
-        }),
-        ...(resolvedInputs["timeout_count"] !== undefined && {
-          timeout_count: resolvedInputs["timeout_count"],
-        }),
-        status: "dispatched",
+        pending_count: resolvedInputs["pending_count"],
+        pending_tasks: resolvedInputs["pending_tasks"],
+        new_complete_count: resolvedInputs["new_complete_count"],
+        timeout_count: resolvedInputs["timeout_count"],
+        dispatched,
+        stale,
+        stale_threshold_hours: staleThresholdHrs,
+        ...(spawnSessionKey && { spawn_session_key: spawnSessionKey }),
         dispatched_at: new Date().toISOString(),
+        status,
       };
       break;
     }
 
     case "send": {
       // Real: call message tool (channel, target, message)
-      // Standalone: produce representative queued output.
+      const channel = (resolvedInputs["channel"] as string) || "qqbot";
+      const target = resolvedInputs["target"] as string;
+      const message = resolvedInputs["message"] as string;
+
+      const msgResult = await message({
+        action: "send",
+        channel,
+        target,
+        message,
+      });
+
       output = {
         skill_id: skillId,
         action_verb: skillCard.action_verb,
         target_object: skillCard.target_object,
-        channel: resolvedInputs["channel"] ?? "qqbot",
-        target: resolvedInputs["target"] ?? "",
-        message_preview: String(resolvedInputs["message"] ?? "").slice(0, 80),
-        message_length: String(resolvedInputs["message"] ?? "").length,
-        status: "queued",
+        channel,
+        target,
+        message_preview: String(message ?? "").slice(0, 80),
+        message_length: String(message ?? "").length,
         queued_at: new Date().toISOString(),
+        status: msgResult ? "sent" : "failed",
       };
       break;
     }
 
     case "read": {
       // feishu-doc-read, getnote, etc.
+      const source = (resolvedInputs["source"] as string) || "memory";
+      let result: unknown;
+
+      if (source === "memory") {
+        result = await memory_search({
+          query: resolvedInputs["query"] as string,
+          scope: "local",
+          maxResults: 3,
+        });
+      } else if (source === "feishu_doc") {
+        result = await feishu_doc({
+          action: "read",
+          doc_token: resolvedInputs["doc_token"] as string,
+        });
+      }
+
       output = {
         skill_id: skillId,
         action_verb: skillCard.action_verb,
         target_object: skillCard.target_object,
-        inputs: resolvedInputs,
-        status: "success",
+        source,
+        result,
         read_at: new Date().toISOString(),
+        status: result ? "ok" : "not_found",
       };
       break;
     }
 
     case "write": {
       // feishu-doc-write, memory-write, etc.
+      const dest = (resolvedInputs["destination"] as string) || "memory";
+      const content = resolvedInputs["content"] as string;
+
+      let result: unknown;
+      if (dest === "feishu_doc") {
+        result = await feishu_doc({
+          action: "write",
+          doc_token: resolvedInputs["doc_token"] as string,
+          content,
+        });
+      } else if (dest === "qq") {
+        result = await message({
+          action: "send",
+          channel: "qqbot",
+          target: resolvedInputs["target"] as string,
+          message: content,
+        });
+      }
+
       output = {
         skill_id: skillId,
         action_verb: skillCard.action_verb,
         target_object: skillCard.target_object,
-        inputs: resolvedInputs,
-        status: "success",
+        destination: dest,
+        content_preview: String(content ?? "").slice(0, 80),
         written_at: new Date().toISOString(),
+        status: result ? "ok" : "failed",
       };
       break;
     }
@@ -413,7 +499,8 @@ export async function executeStep(
         action_verb: skillCard.action_verb,
         target_object: skillCard.target_object,
         inputs: resolvedInputs,
-        status: "success",
+        status: "executed",
+        executed_at: new Date().toISOString(),
       };
     }
   }
@@ -464,8 +551,10 @@ export async function executeStep(
 export async function executePipeline(
   pipeline: Pipeline,
   initialContext: StepContext = { outputs: {}, inputs: {} },
+  env?: Record<string, unknown>,
 ): Promise<StepContext> {
-  const ctx: StepContext = { ...initialContext };
+  const ctx: StepContext = { ...initialContext } as StepContext;
+  if (env) ctx.env = env;
   const completed = new Set<string>();
 
   // Build stepId → output_as mapping so interpolate() can resolve cross-step refs
@@ -611,6 +700,78 @@ export function loadPipeline(yamlPath: string): Pipeline {
 /**
  * Load a pipeline from the index by pipeline_id.
  */
+/**
+ * CLI entry point for pipeline executor.
+ * Usage:
+ *   npx tsx src/pipeline-registry/pipeline-executor.ts --pipeline echoreply-dispatch --manual
+ *   npx tsx src/pipeline-registry/pipeline-executor.ts --pipeline echoreply-dispatch --manual --env pending_count=3
+ */
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { values } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      pipeline: { type: "string", short: "p" },
+      manual: { type: "boolean", short: "m", default: false },
+      env: { type: "string", short: "e", multiple: true },
+      help: { type: "boolean", short: "h", default: false },
+    },
+    allowPositionals: true,
+  });
+
+  if (values.help || !values.pipeline) {
+    console.log(`Usage:
+  npx tsx src/pipeline-registry/pipeline-executor.ts --pipeline <id> [--manual] [--env KEY=VALUE...]
+
+Examples:
+  # Run via cron/heartbeat (reads from process.env)
+  npx tsx src/pipeline-registry/pipeline-executor.ts --pipeline echoreply-dispatch
+
+  # Manual run with inline env
+  npx tsx src/pipeline-registry/pipeline-executor.ts --pipeline echoreply-dispatch --manual --env pending_count=3 --env notify_target=qqbot:c2c:TESTUSER
+`);
+    process.exit(0);
+  }
+
+  const indexPath = "src/pipeline-registry/index.yaml";
+  const pipeline = loadPipelineFromIndex(indexPath, values.pipeline);
+
+  if (!pipeline) {
+    console.error(`Pipeline "${values.pipeline}" not found in ${indexPath}`);
+    process.exit(1);
+  }
+
+  // Build env from CLI flags or process.env
+  const env: Record<string, unknown> = {};
+  for (const kv of values.env ?? []) {
+    const [k, v] = kv.split("=");
+    if (k && v !== undefined) env[k.trim()] = v.trim();
+  }
+
+  // Manual mode: set minimal defaults if not overridden
+  if (values.manual) {
+    env["manual_run"] = true;
+    env["pending_count"] = env["pending_count"] ?? 0;
+  } else {
+    // Inherit from process.env (cron/heartbeat context)
+    for (const [k, v] of Object.entries(process.env)) {
+      if (v !== undefined) env[k] = v;
+    }
+  }
+
+  console.log(`[CLI] Running pipeline: ${values.pipeline} (manual=${values.manual})`);
+  console.log(`[CLI] Env:`, JSON.stringify(env));
+
+  executePipeline(pipeline, { outputs: {}, inputs: {} }, env)
+    .then((ctx) => {
+      console.log(`[CLI] Done. outputs:`, Object.keys(ctx.outputs));
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("[CLI] Error:", err.message);
+      process.exit(1);
+    });
+}
+
 export function loadPipelineFromIndex(indexPath: string, pipelineId: string): Pipeline | null {
   const content = readFileSync(resolve(indexPath), "utf-8");
   const parsed = YAML.parse(content);
