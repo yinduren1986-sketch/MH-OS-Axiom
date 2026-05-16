@@ -46,11 +46,6 @@ const RELATIVE_MAP: Record<string, TimeParserFn> = {
     d.setDate(d.getDate() + 2);
     return dateToRange(d, "后天");
   },
-  大后天: (now) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() + 3);
-    return dateToRange(d, "大后天");
-  },
   上周: (now) => {
     const d = new Date(now);
     d.setDate(d.getDate() - 7);
@@ -103,12 +98,8 @@ const RELATIVE_MAP: Record<string, TimeParserFn> = {
   上周六: (now) => getWeekday(now, -7, 6, "上周六"),
   上周日: (now) => getWeekday(now, -7, 0, "上周日"),
   本周三: (now) => getWeekday(now, 0, 3, "本周三"),
-  本周五: (now) => getWeekday(now, 0, 5, "本周五"),
-  本周日: (now) => getWeekday(now, 0, 0, "本周日"),
   周三: (now) => getWeekday(now, 0, 3, "本周三"),
   下周三: (now) => getWeekday(now, 7, 3, "下周三"),
-  下周五: (now) => getWeekday(now, 7, 5, "下周五"),
-  下周日: (now) => getWeekday(now, 7, 0, "下周日"),
   下周: (now) => {
     const d = new Date(now);
     d.setDate(d.getDate() + 7);
@@ -188,36 +179,11 @@ function getWeekday(
   targetWeekday: number,
   label: string,
 ): DateRange {
-  const todayWeekday = now.getDay();
-  let daysBack = (todayWeekday - targetWeekday + 7) % 7;
-
-  if (offsetDays < 0) {
-    // 上X: previous calendar week
-    if (daysBack === 0) {
-      daysBack = 7;
-    } else if (targetWeekday === 0) {
-      // Special: Sunday is week boundary. Most recent past IS in last week. No add.
-    } else if (targetWeekday < todayWeekday) {
-      daysBack += 7;
-    }
-  } else if (offsetDays > 0) {
-    // 下X: next calendar week
-    if (targetWeekday === 0) {
-      // Special: for 下周日, subtract 7 to skip current week and land on NEXT Sunday
-      daysBack -= 7;
-    } else if (targetWeekday <= todayWeekday) {
-      daysBack -= 7;
-    }
-  } else {
-    // offsetDays === 0: 本X
-    if (targetWeekday === 0 && daysBack > 0) {
-      // Special: 本周日. Most recent past is this week. User wants NEXT Sunday.
-      daysBack -= 7;
-    }
-  }
-
   const d = new Date(now);
-  d.setDate(d.getDate() - daysBack);
+  d.setDate(d.getDate() + offsetDays);
+  const currentWeekday = d.getDay();
+  const diff = targetWeekday - currentWeekday;
+  d.setDate(d.getDate() + diff);
   return { from: dateStr(d), to: dateStr(d), label };
 }
 
