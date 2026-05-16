@@ -363,7 +363,17 @@ export async function executeStep(
       let status = "dispatched";
       let spawnSessionKey: string | undefined;
 
-      if (stale) {
+      // Check scan_only: set by query intent in executePipeline intent gate
+      const scanOnly =
+        (resolvedInputs["scan_only"] as string) === "true" ||
+        (resolvedInputs["scan_only"] as boolean) === true ||
+        (ctx.env && (ctx.env as Record<string, unknown>)["scan_only"] === true);
+
+      if (scanOnly) {
+        dispatched = false;
+        status = "scan_only";
+        console.log(`[dispatch] scan_only=true, skipping sessions_spawn`);
+      } else if (stale) {
         // Too old — notify only, don't spawn
         dispatched = false;
         status = "stale";
@@ -555,6 +565,32 @@ export async function executePipeline(
 ): Promise<StepContext> {
   const ctx: StepContext = { ...initialContext } as StepContext;
   if (env) ctx.env = env;
+
+  // ── Intent Gate (pre-flight check) ────────────────────────────────────
+  // Read intent from recent_intent.json (written by conditional-heartbeat handler)
+  // Skip pipeline entirely if intent is "idle" (no action needed)
+  // Set scan_only if intent is "query" (status check, no dispatch)
+  let intentGateReason = "";
+  try {
+    // Dynamic import to avoid circular deps — intent-gate.ts lives in same dir
+    const { checkIntentGate } = await import("./intent-gate.js");
+    const decision = checkIntentGate();
+    if (!decision.allowed) {
+      console.log(`[PipelineExecutor] Blocked by intent gate: ${decision.reason}`);
+      return ctx; // early exit, no steps executed
+    }
+    if (decision.intent.category === "query") {
+      // Query mode: mark ctx so spawn step knows to read-only
+      ctx.env = ctx.env ?? {};
+      ctx.env["scan_only"] = true;
+      console.log(`[PipelineExecutor] Intent=query, running scan-only mode`);
+    }
+    console.log(`[PipelineExecutor] Intent gate passed: category=${decision.intent.category}`);
+  } catch {
+    // Intent gate is non-critical — let pipeline proceed if gate fails
+    console.warn(`[PipelineExecutor] Intent gate check failed, proceeding anyway`);
+  }
+
   const completed = new Set<string>();
 
   // Build stepId → output_as mapping so interpolate() can resolve cross-step refs
