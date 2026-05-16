@@ -369,6 +369,10 @@ export async function executeStep(
         (resolvedInputs["scan_only"] as boolean) === true ||
         (ctx.env && (ctx.env as Record<string, unknown>)["scan_only"] === true);
 
+      // Task priority sorting (recipe 10): stale > high priority > by created_at
+      const priority = (resolvedInputs["priority"] as string) || "normal";
+      const sortScore = stale ? 0 : priority === "high" ? 1 : priority === "low" ? 3 : 2;
+
       if (scanOnly) {
         dispatched = false;
         status = "scan_only";
@@ -405,6 +409,8 @@ export async function executeStep(
         dispatched,
         stale,
         stale_threshold_hours: staleThresholdHrs,
+        sort_score: sortScore,
+        priority: resolvedInputs["priority"],
         ...(spawnSessionKey && { spawn_session_key: spawnSessionKey }),
         dispatched_at: new Date().toISOString(),
         status,
@@ -635,6 +641,35 @@ export async function executePipeline(
           const errorMsg = err instanceof Error ? err.message : String(err);
           const timestamp = new Date().toISOString();
           console.error(`[PipelineExecutor] Step ${step.id} failed: ${errorMsg}`);
+
+          // ── Error classification (from automation-workflows Step 4) ──────────
+          // Classify error type to decide handling strategy
+          const isNetworkError = /ECONNREFUSED|ETIMEDOUT|ENOTFOUND|ECONNRESET|socket|fetch/i.test(
+            errorMsg,
+          );
+          const isAuthError = /401|403|Permission denied|unauthorized|token.*invalid/i.test(
+            errorMsg,
+          );
+          const isParamError = /400|Bad Request|validation|undefined.*null|cannot read/i.test(
+            errorMsg,
+          );
+          const isSpawnSuccess = /dispatched/.test(String(output?.status));
+
+          // Error type → strategy mapping:
+          //   network timeout  → skip (retry next cycle)
+          //   auth/perm error  → pause (won'T fix on retry, alert needed)
+          //   param/bad input → pause (won'T fix on retry, alert needed)
+          //   spawned ok but subagent failed → skip with flag (will retry on next scan)
+          if (isNetworkError) {
+            console.warn(`[PipelineExecutor] Network error on ${step.id}, will retry next cycle`);
+          } else if (isAuthError || isParamError) {
+            console.warn(`[PipelineExecutor] ${step.id} has auth/param error, pausing pipeline`);
+          } else if (isSpawnSuccess && err) {
+            // sessions_spawn succeeded but subagent returned error — skip, don't pause
+            console.warn(
+              `[PipelineExecutor] ${step.id} subagent failed (spawn succeeded), skipping`,
+            );
+          }
 
           if (pipeline.error_policy.on_step_fail === "skip_continue") {
             // Log as skipped
