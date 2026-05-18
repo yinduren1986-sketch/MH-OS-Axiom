@@ -5,6 +5,7 @@
 > _An AI Agent operating system extension built on OpenClaw._
 
 ---
+<img width="1672" height="941" alt="ChatGPT Image 2026年5月17日 22_42_59" src="https://github.com/user-attachments/assets/c7ac02cd-8dbb-4279-b32d-2aa3f00020f7" />
 
 ## Axiom — 不言自明的真理
 
@@ -191,6 +192,8 @@ Write actions as executable, not just "give recommendations."
 **存哪说哪。** 每次把信息存进文件，立刻注明「去这里找」。知道存在哪约等于没存。
 
 **Store where you say, say where you store.** Every time you save information to a file, note "find it here." Knowing where it is but not saying so means it doesn't exist.
+
+<img width="1536" height="1024" alt="ChatGPT Image 2026年5月17日 22_52_59" src="https://github.com/user-attachments/assets/dde9902c-9010-4719-8b13-33b64993d53c" />
 
 ---
 
