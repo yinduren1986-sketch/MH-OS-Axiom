@@ -1,5 +1,5 @@
 {
-  "originHash" : "284269c447b94311beae65318f1912f813261bfdc559185028fc1233ce288efa",
+  "originHash" : "dc022193c4a16f2173358a6b9367cdd19228caca07581be0a851c47684c900ab",
   "pins" : [
     {
       "identity" : "axorcist",
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/steipete/Peekaboo.git",
       "state" : {
-        "revision" : "41180ca7e391c2a05e7cfa9eb6390812805d4f22",
-        "version" : "3.0.0"
+        "revision" : "b0d17c2394efc0539150fa35e89d7470730831a6",
+        "version" : "3.2.0"
       }
     },
     {
